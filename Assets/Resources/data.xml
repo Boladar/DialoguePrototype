@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Dialogues>
+	<Dialogue id="1">
+		<Text>to jest pierwszy dialog</Text>
+			<Option id= "1"> Ktory to jest dialog?</Option>
+			<Option id= "2" > Gdzie jestem </Option> 
+	</Dialogue>
+	<Dialogue id="2">
+		<Text> Nie wiem gdzie jestes </Text>
+			<Option id= "1" > Ktory to jest dialog? </Option>
+			<Option id= "3"> W takim razie jak mam na imie?</Option>
+	</Dialogue>
+	<Dialogue id="3">
+		<Text>nazywasz się tutajbedzieimie </Text>
+	</Dialogue>
+</Dialogues>
