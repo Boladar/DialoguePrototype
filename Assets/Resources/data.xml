@@ -1,16 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Dialogues>
 	<Dialogue id="1">
-		<Text>to jest pierwszy dialog</Text>
+		<Condition>testowaFlaga</Condition>
+		<Message speaker="narrator" file="hmm">to jest pierwszy dialog</Message>
+		<Message speaker="narrator" file="hehe">to jest druga wiadomosc w pierwszym dialogu</Message>
 			<Option id= "1"> Ktory to jest dialog?</Option>
-			<Option id= "2" > Gdzie jestem </Option> 
+			<Option id= "2" > Gdzie jestem </Option>
+			<Option id= "0"> papa </Option>
+		<Trigger>testowaFlaga</Trigger>
 	</Dialogue>
 	<Dialogue id="2">
-		<Text> Nie wiem gdzie jestes </Text>
+		<Message speaker="narrator" file="2.1"> Nie wiem gdzie jestes </Message>
 			<Option id= "1" > Ktory to jest dialog? </Option>
 			<Option id= "3"> W takim razie jak mam na imie?</Option>
 	</Dialogue>
 	<Dialogue id="3">
-		<Text>nazywasz się tutajbedzieimie </Text>
+		<Message speaker="narrator" file="3.1">nazywasz się tutajbedzieimie </Message>
 	</Dialogue>
 </Dialogues>
