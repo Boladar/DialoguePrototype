@@ -12,11 +12,14 @@ public class DialogManager : MonoBehaviour {
 	public static DialogManager DM;
 	DialogSoundManager DSM;
 
+	public GameObject DialogSpeaker;
 	public GameObject DialogText;
 	public GameObject DialogPanel;
-	public GameObject TextBoxPrefab;
 
 	public List<GameObject> OptionTextBoxes;
+
+	int previouslySelectedOption;
+	int currentlySelectedOption;
 
 	void Awake(){
 		if (DM != null)
@@ -35,7 +38,33 @@ public class DialogManager : MonoBehaviour {
 	}
 
 	void Update(){
-		if (DialogPanel.activeSelf == true && Input.anyKeyDown) {
+		//scrool input
+		if (DialogPanel.activeSelf) {
+			OptionTextBoxes [currentlySelectedOption].GetComponentInParent<Animator> ().SetBool ("IsScrollOnThis", false);
+			if (Input.GetAxis ("Mouse ScrollWheel") < 0) {
+				currentlySelectedOption = (currentlySelectedOption + 1) % CurrentDialogue.Options.Count;
+			}
+			if (Input.GetAxis ("Mouse ScrollWheel") > 0) {
+				currentlySelectedOption -= 1;
+				if (currentlySelectedOption == -1)
+					currentlySelectedOption = CurrentDialogue.Options.Count - 1;
+			}
+
+			OptionTextBoxes [currentlySelectedOption].GetComponentInParent<Animator> ().SetBool ("IsScrollOnThis", true);
+
+			if (Input.GetMouseButtonDown (0)) {
+				OptionTextBoxes [currentlySelectedOption].GetComponentInParent<Animator> ().SetBool ("IsScrollOnThis", false);
+
+				foreach (GameObject obj in OptionTextBoxes) {
+					obj.GetComponentInParent<Animator> ().SetBool ("IsIdle", false);
+				}
+
+				ChooseDialogTree (CurrentDialogue.Options [currentlySelectedOption]);
+				currentlySelectedOption = 0;
+			}
+		}
+		//choose dialog based on keys
+		/*if (DialogPanel.activeSelf == true && Input.anyKeyDown) {
 			if (Input.inputString.Length > 0) {
 				char c = Input.inputString [0];
 				if (char.IsDigit (c)) {
@@ -46,7 +75,7 @@ public class DialogManager : MonoBehaviour {
 					}
 				}
 			}
-		}
+		}*/
 	}
 
 	public void ChooseDialogTree(Option option)
@@ -63,6 +92,21 @@ public class DialogManager : MonoBehaviour {
 			DialogText.GetComponent<Text> ().text = ms.Text;
 			yield return StartCoroutine (DSM.PlayDialogue (ms.AudioFilename));
 		}
+
+		ConstructDialogOptions(d);
+	}
+
+	public void ConstructDialogOptions(Dialogue d)
+	{
+		int iterator = 0;
+		foreach (GameObject obj in OptionTextBoxes) {
+			if (CurrentDialogue.Options.Count > iterator) {
+				obj.GetComponent<Text> ().text = CurrentDialogue.Options [iterator].Text;
+				iterator++;
+				obj.GetComponentInParent<Animator> ().SetBool ("IsIdle", true);
+			}
+		}
+		
 	}
 
 	public void ConstructDialog(string ID, List<string> flagNames)
@@ -81,6 +125,7 @@ public class DialogManager : MonoBehaviour {
 	{
 		if (!Dialogues.ContainsKey (ID)) {
 			Debug.LogError("Dialogues does not contain given ID: " + ID);
+			DeActivateDialogPanel();
 			return;
 		}
 
@@ -88,18 +133,6 @@ public class DialogManager : MonoBehaviour {
 		ActivateDialogPanel();
 
 		StartCoroutine (ConstructMessagesForDialog (CurrentDialogue));
-
-		//TODO change message when audio for it ends
-		//DialogText.GetComponent<Text> ().text = CurrentDialogue.Messages[0].Text;
-
-		int iterator = 0;
-		foreach (GameObject obj in OptionTextBoxes) {
-			if (CurrentDialogue.Options.Count > iterator) {
-				//Debug.Log ("opcja");
-				obj.GetComponent<Text> ().text = CurrentDialogue.Options [iterator].Text;
-				iterator++;
-			}
-		}
 
 		foreach (string flagname in CurrentDialogue.Triggers) {
 			FlipFlagValue (flagname);
