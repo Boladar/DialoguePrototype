@@ -6,7 +6,9 @@ using System.Collections.Generic;
 public class DialogManager : MonoBehaviour {
 	public Dictionary<string,Dialogue> Dialogues;
 	public Dictionary<string,bool> Flags;
-	Dialogue CurrentDialogue;
+	public Dialogue CurrentDialogue;
+
+	Queue<string> DialogueIDQueue;
 
 	//static reference to this instance all over the namespace!
 	public static DialogManager DM;
@@ -16,9 +18,14 @@ public class DialogManager : MonoBehaviour {
 	public GameObject DialogText;
 	public GameObject DialogPanel;
 
+	public GameObject TimeBar;
+
+	public List<GameObject> OptionObjects;
 	public List<GameObject> OptionTextBoxes;
 
-	int previouslySelectedOption;
+	public float TimeToAnswer = 30f;
+	public bool AnswerTime = false;
+
 	int currentlySelectedOption;
 
 	void Awake(){
@@ -35,12 +42,18 @@ public class DialogManager : MonoBehaviour {
 		Dialogues = GetComponent<XmlParser> ().Dialogues;
 		Flags = GetComponent<XmlParser>().Flags;
 		DSM = GetComponent<DialogSoundManager>();
+
+		DialogueIDQueue = new Queue<string>();
+
+
+		DeActivateDialogueOptions ();
+		DeActivateDialogPanel();
 	}
 
 	void Update(){
 		//scrool input
-		if (DialogPanel.activeSelf) {
-			OptionTextBoxes [currentlySelectedOption].GetComponentInParent<Animator> ().SetBool ("IsScrollOnThis", false);
+		if (DialogPanel.activeSelf && OptionObjects[currentlySelectedOption].activeSelf == true) {
+			OptionObjects[currentlySelectedOption].GetComponent<Animator> ().SetBool ("IsHighlighted", false);
 			if (Input.GetAxis ("Mouse ScrollWheel") < 0) {
 				currentlySelectedOption = (currentlySelectedOption + 1) % CurrentDialogue.Options.Count;
 			}
@@ -50,41 +63,50 @@ public class DialogManager : MonoBehaviour {
 					currentlySelectedOption = CurrentDialogue.Options.Count - 1;
 			}
 
-			OptionTextBoxes [currentlySelectedOption].GetComponentInParent<Animator> ().SetBool ("IsScrollOnThis", true);
+			OptionObjects [currentlySelectedOption].GetComponent<Animator> ().SetBool ("IsHighlighted", true);
 
 			if (Input.GetMouseButtonDown (0)) {
-				OptionTextBoxes [currentlySelectedOption].GetComponentInParent<Animator> ().SetBool ("IsScrollOnThis", false);
+				OptionObjects [currentlySelectedOption].GetComponent<Animator> ().SetBool ("IsHighlighted", false);
 
-				foreach (GameObject obj in OptionTextBoxes) {
-					obj.GetComponentInParent<Animator> ().SetBool ("IsIdle", false);
+				foreach (GameObject obj in OptionObjects) {
+					obj.GetComponent<Animator> ().SetBool ("IsIdle", false);
 				}
 
+				DeActivateDialogPanel ();
 				ChooseDialogTree (CurrentDialogue.Options [currentlySelectedOption]);
 				currentlySelectedOption = 0;
 			}
 		}
-		//choose dialog based on keys
-		/*if (DialogPanel.activeSelf == true && Input.anyKeyDown) {
-			if (Input.inputString.Length > 0) {
-				char c = Input.inputString [0];
-				if (char.IsDigit (c)) {
-					int value = (int)char.GetNumericValue (c);
-					if (CurrentDialogue.Options.Count >= value) {
-						Debug.Log (c);
-						ChooseDialogTree (CurrentDialogue.Options [value - 1]);
-					}
-				}
-			}
-		}*/
+	}
+
+	IEnumerator WaitForCurrentDialogToFinish(string DialogueIDToCall){
+		while (CurrentDialogue != null && DialogueIDQueue.Peek() == DialogueIDToCall) {
+			yield return null;
+		}
+
+		Debug.Log("dequeue: " + DialogueIDQueue.Dequeue());
+
+		ConstructDialog (DialogueIDToCall);	
 	}
 
 	public void ChooseDialogTree(Option option)
 	{
-		//zerowanie tekstu opcji
-		foreach (GameObject obj in OptionTextBoxes)
-			obj.GetComponent<Text> ().text = "";
-		
-		ConstructDialog (option.ID);
+		//nullowanie obecnego dialogu
+		CurrentDialogue = null;
+
+		//zerowanie licznika
+		TimeBar.GetComponent<AnswerCounter>().AnswerTime = false;
+		TimeBar.GetComponent<Image>().fillAmount = 1.0f;
+		//deaktywacja zbednych pcji
+		DeActivateDialogueOptions();
+
+		if (Dialogues.ContainsKey (option.ID))
+			ConstructDialog (option.ID);
+		else if (option.ID == "0") {
+			CurrentDialogue = null;
+		}
+		else
+			Debug.Log ("Dialogues does not contain given key: " + option.ID);
 	}
 
 	IEnumerator ConstructMessagesForDialog(Dialogue d){
@@ -101,11 +123,15 @@ public class DialogManager : MonoBehaviour {
 		int iterator = 0;
 		foreach (GameObject obj in OptionTextBoxes) {
 			if (CurrentDialogue.Options.Count > iterator) {
+				//aktywacja potrzebnego obiektu opcji
+				OptionObjects [iterator].SetActive (true);
 				obj.GetComponent<Text> ().text = CurrentDialogue.Options [iterator].Text;
 				iterator++;
 				obj.GetComponentInParent<Animator> ().SetBool ("IsIdle", true);
 			}
 		}
+		TimeBar.SetActive (true);
+		TimeBar.GetComponent<AnswerCounter>().AnswerTime = true;
 		
 	}
 
@@ -126,6 +152,15 @@ public class DialogManager : MonoBehaviour {
 		if (!Dialogues.ContainsKey (ID)) {
 			Debug.LogError("Dialogues does not contain given ID: " + ID);
 			DeActivateDialogPanel();
+			return;
+		}
+
+		if (CurrentDialogue != null) {
+			if (!DialogueIDQueue.Contains(ID)) {
+				DialogueIDQueue.Enqueue ( ID);
+				Debug.Log ("dialogQueue count" + DialogueIDQueue.Count);
+				StartCoroutine (WaitForCurrentDialogToFinish (ID));
+			}
 			return;
 		}
 
@@ -150,6 +185,21 @@ public class DialogManager : MonoBehaviour {
 	public void SetFlagValue(string flagName, bool value)
 	{
 		Flags [flagName] = value;
+	}
+
+
+	public void DeActivateDialogueOptions(){
+		foreach (GameObject obj in OptionObjects) {
+			obj.SetActive (false);
+		}
+		TimeBar.SetActive (false);
+	}
+
+	public void ActivateDialogueOptions(){
+		foreach (GameObject obj in OptionObjects) {
+			obj.SetActive (true);
+		}
+		TimeBar.SetActive (true);
 	}
 
 	public void DeActivateDialogPanel()

@@ -7,7 +7,6 @@
 			<Option id= "1"> Ktory to jest dialog?</Option>
 			<Option id= "2" > Gdzie jestem </Option>
 			<Option id= "0"> papa </Option>
-		<Trigger>testowaFlaga</Trigger>
 	</Dialogue>
 	<Dialogue id="2">
 		<Message speaker="narrator" file="hmm"> Nie wiem gdzie jestes </Message>

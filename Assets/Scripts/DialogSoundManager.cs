@@ -7,12 +7,10 @@ public class DialogSoundManager : MonoBehaviour {
 
 	void Start(){
 		audio = GetComponent<AudioSource> ();
-		PlayDialogue ("hmm");
 	}
 
 	public IEnumerator PlayDialogue(string clipName){
 		
-		Debug.Log ("odtwarzam" + clipName);
 		audio.clip = GetAudioClipFromFile (clipName);
 		audio.Play ();
 		yield return new WaitForSeconds(audio.clip.length);
