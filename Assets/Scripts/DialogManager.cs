@@ -104,6 +104,7 @@ public class DialogManager : MonoBehaviour {
 			ConstructDialog (option.ID);
 		else if (option.ID == "0") {
 			CurrentDialogue = null;
+			DeActivateDialogPanel ();
 		}
 		else
 			Debug.Log ("Dialogues does not contain given key: " + option.ID);
@@ -132,7 +133,7 @@ public class DialogManager : MonoBehaviour {
 		}
 		TimeBar.SetActive (true);
 		TimeBar.GetComponent<AnswerCounter>().AnswerTime = true;
-		
+		StartCoroutine (TimeBar.GetComponent<AnswerCounter> ().ActivateCounter(TimeToAnswer));
 	}
 
 	public void ConstructDialog(string ID, List<string> flagNames)

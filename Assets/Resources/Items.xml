@@ -1,0 +1,12 @@
+﻿<?xml version="1.0" encoding="UTF-8" ?>
+<Items>
+	<Item id="1" movable="true" invokeDialog = "true">
+		<Name>Nazwa pierwszego przedmiotu</Name>
+		<Description>opis pierwszego przedmiotu</Description>
+	</Item>
+	<Item id="2" movable="true" invokeDialog = "true">
+		<Name>Nazwa drugiego przedmiotu</Name>
+		<Description>opis drugiego przedmiotu</Description>
+	</Item>
+</Items>
+

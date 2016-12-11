@@ -14,10 +14,18 @@ public class AnswerCounter : MonoBehaviour {
 		WaitTime = DialogManager.DM.TimeToAnswer;
 	}
 
-	// Update is called once per frame
-	void Update () {
-		if (AnswerTime) {
-			img.fillAmount -= 1.0f / WaitTime * Time.deltaTime;
+	public IEnumerator ActivateCounter(float time)
+	{
+		Debug.Log ("poczatek");
+		yield return new WaitForSecondsRealtime (time);
+		DialogManager.DM.ChooseDialogTree (new Option ("0", ""));
+		Debug.Log ("koniec");
 	}
+
+	// Update is called once per frame
+	void Update () {	
+		if (AnswerTime) {
+			img.fillAmount -= 1.0f / WaitTime * Time.fixedDeltaTime;
+		}
 }
 }
