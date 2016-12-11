@@ -4,7 +4,7 @@ using System.Collections;
 public class ItemGameObject : MonoBehaviour{
 
 	public string ID;
-	private Item ItemData;
+	public Item ItemData;
 
 	void Start(){
 		this.ItemData = XmlParser.XP.GetItemData (ID);
